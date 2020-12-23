@@ -1,0 +1,10 @@
+*.o
+*.d
+*.crf
+*.dep
+*.build_log
+*.axf
+*.map
+*.lnp
+*.lst
+*.scvd
