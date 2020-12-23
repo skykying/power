@@ -24,7 +24,7 @@
 
 ADC_HandleTypeDef AdcHandle;
 
-volatile uint32_t VinConversion, VoutConversion;
+volatile uint32_t Vin1Conversion, Vin2Conversion,Vin3Conversion, Vin4Conversion;
 
 /**
   * @brief  Injected conversion complete callback in non blocking mode 
@@ -39,8 +39,10 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
     //__HAL_HRTIM_TIMER_CLEAR_IT(&HrtimHandle, HRTIM_TIMERINDEX_TIMER_B, HRTIM_TIM_IT_CMP2);
 
     /* Get ADC converted data */
-    VinConversion = HAL_ADCEx_InjectedGetValue(hadc, ADC_INJECTED_RANK_1);
-    VoutConversion = HAL_ADCEx_InjectedGetValue(hadc, ADC_INJECTED_RANK_2);
+    Vin1Conversion = HAL_ADCEx_InjectedGetValue(hadc, ADC_INJECTED_RANK_1);
+    Vin2Conversion = HAL_ADCEx_InjectedGetValue(hadc, ADC_INJECTED_RANK_2);
+    Vin3Conversion = HAL_ADCEx_InjectedGetValue(hadc, ADC_INJECTED_RANK_3);
+    Vin4Conversion = HAL_ADCEx_InjectedGetValue(hadc, ADC_INJECTED_RANK_4);
 
     // ALG_PI_regulator();
   }
