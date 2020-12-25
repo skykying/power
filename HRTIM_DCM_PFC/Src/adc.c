@@ -24,7 +24,18 @@
 
 ADC_HandleTypeDef AdcHandle;
 
-volatile uint32_t Vin1Conversion, Vin2Conversion,Vin3Conversion, Vin4Conversion;
+/**
+ * @brief  calculate the adc float value
+ * @param  hadc: ADC unit32_t value
+ */
+float32_t calculate_adc_f32 ( uint32_t adc ) {
+    float32_t result = adc;
+	
+    result = result * 3.3f;
+    result = result / 4096;
+
+    return result;
+}
 
 /**
   * @brief  Injected conversion complete callback in non blocking mode 
@@ -33,7 +44,10 @@ volatile uint32_t Vin1Conversion, Vin2Conversion,Vin3Conversion, Vin4Conversion;
   */
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-
+	uint32_t Vin1Conversion=1, Vin2Conversion =2,Vin3Conversion =3, Vin4Conversion=4;
+	char buf[128];
+	float32_t v1, v2, v3, v4;
+	
   if( __HAL_ADC_GET_FLAG(hadc, ADC_FLAG_JEOS))
   {   
     //__HAL_HRTIM_TIMER_CLEAR_IT(&HrtimHandle, HRTIM_TIMERINDEX_TIMER_B, HRTIM_TIM_IT_CMP2);
@@ -43,8 +57,14 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
     Vin2Conversion = HAL_ADCEx_InjectedGetValue(hadc, ADC_INJECTED_RANK_2);
     Vin3Conversion = HAL_ADCEx_InjectedGetValue(hadc, ADC_INJECTED_RANK_3);
     Vin4Conversion = HAL_ADCEx_InjectedGetValue(hadc, ADC_INJECTED_RANK_4);
-
-    // ALG_PI_regulator();
+		
+    v1 = calculate_adc_f32(Vin1Conversion);
+    v2 = calculate_adc_f32(Vin2Conversion);
+    v3 = calculate_adc_f32(Vin3Conversion);
+    v4 = calculate_adc_f32(Vin4Conversion);
+		
+		//sprintf(buf, "%f %f %f %f \n\r", v1,v2,v3,v4);
+		//debug_print(buf);
   }
 
 }
@@ -90,9 +110,9 @@ void ADC_Config(void)
   InjectionConfig.AutoInjectedConv = DISABLE;
   InjectionConfig.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_HRTIM_TRG2;
   InjectionConfig.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_2;
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_1;
   InjectionConfig.InjectedDiscontinuousConvMode = DISABLE;
-  InjectionConfig.InjectedNbrOfConversion = 2;
+  InjectionConfig.InjectedNbrOfConversion = 4;
   InjectionConfig.InjectedOffset = 0;
   InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
@@ -102,13 +122,13 @@ void ADC_Config(void)
   HAL_ADCEx_InjectedConfigChannel(&AdcHandle, &InjectionConfig);
 
   /* Configure the 2nd injected conversion for Vout on Ch4 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_4;
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_2;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&AdcHandle, &InjectionConfig);
 
   /* Configure the 3nd injected conversion for Vout on Ch4 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_4;
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_3;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&AdcHandle, &InjectionConfig);

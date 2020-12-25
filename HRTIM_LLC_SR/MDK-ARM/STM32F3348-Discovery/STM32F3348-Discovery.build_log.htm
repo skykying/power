@@ -22,18 +22,86 @@ Dialog DLL:      TCM.DLL V1.48.0.0
  
 <h2>Project:</h2>
 E:\power\en.stm32cubef3\STM32Cube_FW_F3_V1.11.0\Projects\STM32F3348-Discovery\Examples\HRTIM\HRTIM_LLC_SR\MDK-ARM\Project.uvprojx
-Project File Date:  12/23/2020
+Project File Date:  12/25/2020
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'd:\Keil_v535\ARM\ARMCC\Bin'
 Build target 'STM32F3348-Discovery'
-compiling uart.c...
-..\Src\uart.c(230): warning:  #177-D: function "Buffercmp"  was declared but never referenced
-  static uint16_t Buffercmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint16_t BufferLength)
-..\Src\uart.c: 1 warning, 0 errors
-linking...
-Program Size: Code=23924 RO-data=2672 RW-data=188 ZI-data=1876  
-"STM32F3348-Discovery\STM32F3348-Discovery.axf" - 0 Error(s), 1 Warning(s).
+compiling stm32_PMBUS_stack.c...
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c(339): error:  #20: identifier "SMBUS_LAST_FRAME" is undefined
+  			xFerOptions |= SMBUS_LAST_FRAME;
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c(511): error:  #20: identifier "SMBUS_LAST_FRAME" is undefined
+  		xFerOptions |= SMBUS_LAST_FRAME;
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c(522): warning:  #223-D: function "HAL_SMBUS_Master_Sequential_Transmit_IT" declared implicitly
+  		result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, SMBUS_ADDR_ZONE_WRITE, pStackContext->Buffer, size, xFerOptions );
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c(522): warning:  #188-D: enumerated type mixed with another type
+  		result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, SMBUS_ADDR_ZONE_WRITE, pStackContext->Buffer, size, xFerOptions );
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c(598): warning:  #223-D: function "HAL_SMBUS_Master_Sequential_Transmit_IT" declared implicitly
+  		result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, SMBUS_ADDR_ZONE_READ, pStackContext->Buffer, 2, SMBUS_FIRST_FRAME );
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c(598): warning:  #188-D: enumerated type mixed with another type
+  		result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, SMBUS_ADDR_ZONE_READ, pStackContext->Buffer, 2, SMBUS_FIRST_FRAME );
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c(617): warning:  #223-D: function "HAL_SMBUS_Master_Sequential_Receive_IT" declared implicitly
+  	result = HAL_SMBUS_Master_Sequential_Receive_IT( pStackContext->Device, SMBUS_ADDR_ZONE_READ, pStackContext->Buffer, 2, SMBUS_NO_OPTION_FRAME);
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c(617): error:  #20: identifier "SMBUS_NO_OPTION_FRAME" is undefined
+  	result = HAL_SMBUS_Master_Sequential_Receive_IT( pStackContext->Device, SMBUS_ADDR_ZONE_READ, pStackContext->Buffer, 2, SMBUS_NO_OPTION_FRAME);
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c(617): warning:  #188-D: enumerated type mixed with another type
+  	result = HAL_SMBUS_Master_Sequential_Receive_IT( pStackContext->Device, SMBUS_ADDR_ZONE_READ, pStackContext->Buffer, 2, SMBUS_NO_OPTION_FRAME);
+..\SMBUS_PMBUS_Stack\Src\stm32_PMBUS_stack.c: 6 warnings, 3 errors
+compiling stm32_SMBUS_stack.c...
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(199): warning:  #223-D: function "HAL_SMBUS_Master_Sequential_Receive_IT" declared implicitly
+        HAL_SMBUS_Master_Sequential_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[1]), 1, SMBUS_NEXT_FRAME );
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(212): warning:  #223-D: function "HAL_SMBUS_Master_Sequential_Receive_IT" declared implicitly
+        HAL_SMBUS_Master_Sequential_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[1]), size, SMBUS_LAST_FRAME | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(212): error:  #20: identifier "SMBUS_LAST_FRAME" is undefined
+        HAL_SMBUS_Master_Sequential_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[1]), size, SMBUS_LAST_FRAME | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(254): error:  #20: identifier "HAL_SMBUS_STATE_BUSY_TX" is undefined
+        pStackContext->Device->PreviousState = HAL_SMBUS_STATE_BUSY_TX;
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(315): warning:  #223-D: function "HAL_SMBUS_Master_Sequential_Receive_IT" declared implicitly
+          HAL_SMBUS_Master_Sequential_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[2]), size, SMBUS_LAST_FRAME  | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(315): error:  #20: identifier "SMBUS_LAST_FRAME" is undefined
+          HAL_SMBUS_Master_Sequential_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[2]), size, SMBUS_LAST_FRAME  | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(345): error:  #20: identifier "SMBUS_PERIPHERAL_MODE_HOST" is undefined
+    if ( ( pStackContext->Device->Instance->CR1 & SMBUS_PERIPHERAL_MODE_HOST ) == 0)
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(347): error:  #20: identifier "I2C_CR1_ALERT" is undefined
+      pStackContext->Device->Instance->CR1 |= I2C_CR1_ALERT;
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(429): error:  #20: identifier "I2C_OAR2_ENDUAL" is undefined
+        __SMBUS_ZONE_ENABLE(hsmbus);
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(437): error:  #20: identifier "I2C_CR1_ACK" is undefined
+        CLEAR_BIT(hsmbus->Instance->CR1, I2C_CR1_ACK);
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(439): error:  #136: struct "<unnamed>"  has no field "SR1"
+        if ( hsmbus->Instance->SR1 & I2C_SR1_ADDR )
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(439): error:  #20: identifier "I2C_SR1_ADDR" is undefined
+        if ( hsmbus->Instance->SR1 & I2C_SR1_ADDR )
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(441): warning:  #223-D: function "__HAL_SMBUS_CLEAR_ADDRFLAG" declared implicitly
+          __HAL_SMBUS_CLEAR_ADDRFLAG(hsmbus);
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(447): error:  #136: struct "<unnamed>"  has no field "SR1"
+        hsmbus->Instance->SR1 |= I2C_SR1_TXE;
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(447): error:  #20: identifier "I2C_SR1_TXE" is undefined
+        hsmbus->Instance->SR1 |= I2C_SR1_TXE;
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(942): error:  #20: identifier "SMBUS_FIRST_AND_LAST_FRAME" is undefined
+        xFerOptions = SMBUS_FIRST_AND_LAST_FRAME;
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1025): error:  #20: identifier "SMBUS_FIRST_AND_LAST_FRAME" is undefined
+              xFerOptions = SMBUS_FIRST_AND_LAST_FRAME | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1047): warning:  #223-D: function "HAL_SMBUS_Master_Sequential_Transmit_IT" declared implicitly
+        result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, address, com_buffer, size, xFerOptions );
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1047): warning:  #188-D: enumerated type mixed with another type
+        result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, address, com_buffer, size, xFerOptions );
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1066): error:  #20: identifier "SMBUS_FIRST_AND_LAST_FRAME" is undefined
+    uint32_t              xFerOptions = SMBUS_FIRST_AND_LAST_FRAME;
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1104): warning:  #223-D: function "HAL_SMBUS_Master_Sequential_Transmit_IT" declared implicitly
+      result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, SMBUS_ADDR_HOST, pStackContext->Buffer, 3, xFerOptions );
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1104): warning:  #188-D: enumerated type mixed with another type
+      result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, SMBUS_ADDR_HOST, pStackContext->Buffer, 3, xFerOptions );
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1144): error:  #20: identifier "SMBUS_FIRST_AND_LAST_FRAME" is undefined
+        xFerOptions = SMBUS_FIRST_AND_LAST_FRAME;
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1153): error:  #20: identifier "SMBUS_FIRST_AND_LAST_FRAME" is undefined
+        xFerOptions = SMBUS_FIRST_AND_LAST_FRAME | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1159): warning:  #223-D: function "HAL_SMBUS_Master_Sequential_Receive_IT" declared implicitly
+      result = HAL_SMBUS_Master_Sequential_Receive_IT( pStackContext->Device, address, pData, size, xFerOptions );
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c(1159): warning:  #188-D: enumerated type mixed with another type
+      result = HAL_SMBUS_Master_Sequential_Receive_IT( pStackContext->Device, address, pData, size, xFerOptions );
+..\SMBUS_PMBUS_Stack\Src\stm32_SMBUS_stack.c: 10 warnings, 16 errors
+"STM32F3348-Discovery\STM32F3348-Discovery.axf" - 19 Error(s), 16 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -56,7 +124,8 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.4.0
-Build Time Elapsed:  00:00:12
+Target not created.
+Build Time Elapsed:  00:00:09
 </pre>
 </body>
 </html>

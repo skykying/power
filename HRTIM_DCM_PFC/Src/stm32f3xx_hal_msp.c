@@ -79,6 +79,10 @@ void HAL_HRTIM_MspInit(HRTIM_HandleTypeDef * hhrtim)
   /* Enable HRTIM clock*/
   __HAL_RCC_HRTIM1_CLK_ENABLE();
 
+    /* Configure and enable HRTIM TIMERD interrupt channel in NVIC */
+  HAL_NVIC_SetPriority(HRTIM1_TIMD_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(HRTIM1_TIMD_IRQn);
+  
 }
 
 /**
@@ -171,7 +175,17 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
 
   /*##-2- Configure peripheral GPIO ##########################################*/
   /* Configure PA1 and PA3 (ADC1 Channel2 and 4) as analog inputs */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);

@@ -38,8 +38,9 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef        Tim6Handle;
+TIM_HandleTypeDef        Tim15Handle;
 /* Private function prototypes -----------------------------------------------*/
-HAL_StatusTypeDef TIMER_Config (uint32_t TickPriority);
+
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -51,18 +52,12 @@ HAL_StatusTypeDef TIMER_Config (uint32_t TickPriority);
   * @param  TickPriority Tick interrupt priority.
   * @retval HAL status
   */
-HAL_StatusTypeDef TIMER_Config (uint32_t TickPriority)
+HAL_StatusTypeDef TIMER_VAQ_Config (void)
 {
   RCC_ClkInitTypeDef    clkconfig;
   uint32_t              uwTimclock, uwAPB1Prescaler = 0U;
   uint32_t              uwPrescalerValue = 0U;
   uint32_t              pFLatency;
-  
-    /*Configure the TIM6 IRQ priority */
-  HAL_NVIC_SetPriority(TIM6_DAC_IRQn, TickPriority ,0U);
-  
-  /* Enable the TIM6 global Interrupt */
-  HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
   
   /* Enable TIM6 clock */
   __HAL_RCC_TIM6_CLK_ENABLE();
@@ -89,13 +84,19 @@ HAL_StatusTypeDef TIMER_Config (uint32_t TickPriority)
   /* Initialize TIM6 */
   Tim6Handle.Instance = TIM6;
   
+      /*Configure the TIM6 IRQ priority */
+  HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 4 ,0U);
+  
+  /* Enable the TIM6 global Interrupt */
+  HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
+  
   /* Initialize TIMx peripheral as follow:
   + Period = [(TIM6CLK/1000U) - 1]. to have a (1U/1000U) s time base.
   + Prescaler = (uwTimclock/1000000U - 1U) to have a 1MHz counter clock.
   + ClockDivision = 0
   + Counter direction = Up
   */
-  Tim6Handle.Init.Period = (1000000U / 1000U) - 1U;
+  Tim6Handle.Init.Period = (1000000U / 4000U) - 1U;
   Tim6Handle.Init.Prescaler = uwPrescalerValue;
   Tim6Handle.Init.ClockDivision = 0U;
   Tim6Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -104,6 +105,76 @@ HAL_StatusTypeDef TIMER_Config (uint32_t TickPriority)
   {
     /* Start the TIM time Base generation in interrupt mode */
     return HAL_TIM_Base_Start_IT(&Tim6Handle);
+  }
+  
+  /* Return function status */
+  return HAL_ERROR;
+}
+
+/**
+  * @brief  This function configures the TIM15 as a time base source. 
+  *         The time source is configured  to have 1ms time base with a dedicated 
+  *         Tick interrupt priority. 
+  * @note   This function is called  automatically at the beginning of program after
+  *         reset by HAL_Init() or at any time when clock is configured, by HAL_RCC_ClockConfig(). 
+  * @param  TickPriority Tick interrupt priority.
+  * @retval HAL status
+  */
+HAL_StatusTypeDef TIMER_VAL_Config (void)
+{
+  RCC_ClkInitTypeDef    clkconfig;
+  uint32_t              uwTimclock, uwAPB1Prescaler = 0U;
+  uint32_t              uwPrescalerValue = 0U;
+  uint32_t              pFLatency;
+  
+  /* Enable TIM15 clock */
+  __HAL_RCC_TIM15_CLK_ENABLE();
+  
+  /* Get clock configuration */
+  HAL_RCC_GetClockConfig(&clkconfig, &pFLatency);
+  
+  /* Get APB1 prescaler */
+  uwAPB1Prescaler = clkconfig.APB1CLKDivider;
+  
+  /* Compute TIM15 clock */
+  if (uwAPB1Prescaler == RCC_HCLK_DIV1) 
+  {
+    uwTimclock = HAL_RCC_GetPCLK1Freq();
+  }
+  else
+  {
+    uwTimclock = 2U*HAL_RCC_GetPCLK1Freq();
+  }
+  
+  /* Compute the prescaler value to have TIM6 counter clock equal to 1MHz */
+  uwPrescalerValue = (uint32_t) ((uwTimclock / 1000000U) - 1U);
+  
+  /* Initialize TIM15 */
+  Tim15Handle.Instance = TIM15;
+  
+  /* Initialize TIMx peripheral as follow:
+  + Period = [(TIM15CLK/1000U) - 1]. to have a (1U/1000U) s time base.
+  + Prescaler = (uwTimclock/1000000U - 1U) to have a 1MHz counter clock.
+  + ClockDivision = 0
+  + Counter direction = Up
+  */
+  Tim15Handle.Init.Period = (1000000U / 200U) - 1U;
+  Tim15Handle.Init.Prescaler = uwPrescalerValue;
+  Tim15Handle.Init.ClockDivision = 0U;
+  Tim15Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+  Tim15Handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+
+  /*Configure the TIM15 IRQ priority */
+  HAL_NVIC_SetPriority(TIM15_IRQn, 4 ,1U);
+  
+  /* Enable the TIM15 global Interrupt */
+  HAL_NVIC_EnableIRQ(TIM15_IRQn);
+
+
+  if(HAL_TIM_Base_Init(&Tim15Handle) == HAL_OK)
+  {
+    /* Start the TIM time Base generation in interrupt mode */
+    return HAL_TIM_Base_Start_IT(&Tim15Handle);
   }
   
   /* Return function status */
@@ -145,6 +216,15 @@ void TIMER_ResumeTick(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   // debug_print("HAL_TIM_PeriodElapsedCallback");
+	
+	if( htim->Instance == TIM15){
+		//BSP_LED_Toggle(LED4);
+	}
+	
+	if( htim->Instance == TIM6){
+		BSP_LED_Toggle(LED4);
+	}
+		
 }
 
 

@@ -40,6 +40,8 @@
 extern UART_HandleTypeDef       UartHandle;
 extern ADC_HandleTypeDef        AdcHandle;
 extern TIM_HandleTypeDef        Tim6Handle;
+extern TIM_HandleTypeDef        Tim15Handle;
+extern HRTIM_HandleTypeDef      hhrtim;
 /* Private functions ---------------------------------------------------------*/
 
 
@@ -201,6 +203,21 @@ void ADC1_2_IRQHandler(void)
 void TIM6_DAC_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&Tim6Handle);
+}
+
+/**
+* @brief  This function handles HRTIM1 TIMC interrupt request.
+* @param  None
+* @retval None
+*/
+void HRTIM1_TIMD_IRQHandler(void)
+{
+  HAL_HRTIM_IRQHandler(&hhrtim, HRTIM_TIMERINDEX_TIMER_D);
+}
+
+
+void TIM15_IRQHandler(void){
+  HAL_TIM_IRQHandler(&Tim15Handle);
 }
 
 /**

@@ -33,13 +33,23 @@
 
 //#define SNIPPET /* HRTIM initialisation done at register level (no HAL call) */
 
-#define TON_MAX 11520   /* 2.5탎 normal Ton time */
+#define TON_MAX 11520   /* 2.5탎 normal Ton time  0X2D00 */
 #define TON_MIN 2304    /* 500ns overcurrent blanking time */
 
-#define TOFF_MIN 4608   /* 1탎, 285kHz max PFC frequency: 1/(TONmax + Toffmin)*/
+/* 2D00 + 1200 =3F00 */
+#define TOFF_MIN 4608   /* 1탎, 285kHz max PFC frequency: 1/(TONmax + Toffmin) 0X1200*/
 #define TOFF_MAX 34560  /* 7.5탎 timeout if no ZCD occurs */
 
 /* Private define ------------------------------------------------------------*/
+
+/* This defines the minimum LLC operating frequency, here 70.35kHz */
+#define LLC_PWM_PERIOD ((uint16_t)0xFFDF) 
+// #define LLC_PWM_PERIOD (18432)
+/* This value is used to position the ADC sampling point before and after the 
+commutation on the synchronous rectification FETs */
+/* It corresponds to 250ns (0x480/32) x (1/144MHz), slightly above ADC
+conversion time */
+#define ADC_CONVERSION_TIME     ((uint16_t)0x480)
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -51,7 +61,6 @@ static void Error_Handler(void);
 static void GPIO_HRTIM_outputs_Config(void);
 static void HRTIM_Config(void);
 
-
 /* Private functions ---------------------------------------------------------*/
 
 /* Exported variables --------------------------------------------------------*/
@@ -62,7 +71,9 @@ void alg_init(void);
 void uart_callback( void );
 void fault_check( void );
 void ADC_Config(void);
-HAL_StatusTypeDef TIMER_Config (uint32_t TickPriority);
+
+HAL_StatusTypeDef TIMER_VAQ_Config (void);
+HAL_StatusTypeDef TIMER_VAL_Config (void);
 
 /**
   * @brief  Main program.
@@ -99,7 +110,8 @@ int main(void)
 	UART_init();
   ADC_Config();
 
-  TIMER_Config(1);
+  TIMER_VAQ_Config();
+  TIMER_VAL_Config();
 	
   /* Initialize HRTIM outputs (it has to be done after HRTIM init) */
   GPIO_HRTIM_outputs_Config();
@@ -108,8 +120,8 @@ int main(void)
   while (1)
   {
     
-    fault_check();
-    uart_callback();
+    //fault_check();
+    //uart_callback();
     
     /* ---------------- */
     /* Normal operation */
@@ -174,6 +186,66 @@ static void GPIO_HRTIM_outputs_Config(void)
 
 
 /**
+  * @brief  Callback function invoked when timer repetition period has elapsed
+  * @param  hhrtim: pointer to HAL HRTIM handle  
+  * @param  TimerIdx: Timer index
+  *                   This parameter can be one of the following values:
+  *                   @arg HRTIM_TIMERINDEX_MASTER  for master timer
+  *                   @arg HRTIM_TIMERINDEX_TIMER_A for timer A
+  *                   @arg HRTIM_TIMERINDEX_TIMER_B for timer B
+  *                   @arg HRTIM_TIMERINDEX_TIMER_C for timer C
+  *                   @arg HRTIM_TIMERINDEX_TIMER_D for timer D
+  *                   @arg HRTIM_TIMERINDEX_TIMER_E for timer E
+  * @retval None
+  */
+void HAL_HRTIM_RepetitionEventCallback(HRTIM_HandleTypeDef * hhrtim, uint32_t TimerIdx)
+{
+  uint32_t CurrentPeriod;
+
+  if (TimerIdx == HRTIM_TIMERINDEX_TIMER_D) {
+		//BSP_LED_Toggle(LED5);
+      /* Get current LLC period value */
+    CurrentPeriod = __HAL_HRTIM_GETPERIOD(hhrtim, HRTIM_TIMERINDEX_TIMER_D);
+    /* Decrease the LLC period down to half the init value */
+    if (CurrentPeriod > (LLC_PWM_PERIOD)/2)
+    {
+      CurrentPeriod--;
+    }
+    else  /* Re-start ramp from initial period */
+    {
+      /* Update duty cycle (CMP1) and ADC triggering point (CMP2)*/
+      CurrentPeriod = LLC_PWM_PERIOD;
+    }
+    /* Set new LLC frequency */
+    // __HAL_HRTIM_SETPERIOD(hhrtim, HRTIM_TIMERINDEX_TIMER_D, CurrentPeriod);
+  }
+
+}
+
+/**
+  * @brief  Callback function invoked when the timer x counter reset/roll-over
+  *         event occurs.
+  * @param  hhrtim pointer to HAL HRTIM handle
+  * @param  TimerIdx Timer index
+  *                   This parameter can be one of the following values:
+  *                   @arg HRTIM_TIMERINDEX_TIMER_A for timer A
+  *                   @arg HRTIM_TIMERINDEX_TIMER_B for timer B
+  *                   @arg HRTIM_TIMERINDEX_TIMER_C for timer C
+  *                   @arg HRTIM_TIMERINDEX_TIMER_D for timer D
+  *                   @arg HRTIM_TIMERINDEX_TIMER_E for timer E
+  * @retval None
+  */
+void HAL_HRTIM_CounterResetCallback(HRTIM_HandleTypeDef * hhrtim,
+                                              uint32_t TimerIdx)
+{
+
+  if (TimerIdx == HRTIM_TIMERINDEX_TIMER_D) {
+    BSP_LED_Toggle(LED3);
+  }
+}
+
+
+/**
 * @brief  HRTIM configuration
 * @param  None
 * @retval None
@@ -214,7 +286,7 @@ static void HRTIM_Config(void)
   /* --------------------------------------------------- */
   /* TIMERD initialization: timer mode and PWM frequency */
   /* --------------------------------------------------- */
-  timebase_config.Period = 0xFFDF;      /* Set max period */
+  timebase_config.Period = LLC_PWM_PERIOD;      /* Set max period */
   timebase_config.RepetitionCounter = 0;
   timebase_config.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
   timebase_config.Mode = HRTIM_MODE_CONTINUOUS;
@@ -237,7 +309,7 @@ static void HRTIM_Config(void)
   timer_config.BurstMode = HRTIM_TIMERBURSTMODE_MAINTAINCLOCK;
   timer_config.RepetitionUpdate = HRTIM_UPDATEONREPETITION_DISABLED;
   timer_config.ResetUpdate = HRTIM_TIMUPDATEONRESET_ENABLED;
-  timer_config.InterruptRequests = HRTIM_TIM_IT_NONE;
+  timer_config.InterruptRequests = HRTIM_TIM_IT_REP + HRTIM_TIM_IT_RST;
   timer_config.PushPull = HRTIM_TIMPUSHPULLMODE_DISABLED;
   timer_config.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
   timer_config.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
@@ -394,8 +466,8 @@ static void HRTIM_Config(void)
   HAL_HRTIM_WaveformOutputStart(&hhrtim, HRTIM_OUTPUT_TD1 | HRTIM_OUTPUT_TD2); 
 
   /* Start HRTIM's TIMER D*/
-  HAL_HRTIM_WaveformCountStart(&hhrtim, HRTIM_TIMERID_TIMER_D);
-
+  // HAL_HRTIM_WaveformCountStart(&hhrtim, HRTIM_TIMERID_TIMER_D);
+  HAL_HRTIM_WaveformCountStart_IT(&hhrtim, HRTIM_TIMERID_TIMER_D);
 }
 
 /**
