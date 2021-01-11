@@ -39,6 +39,7 @@
 #include "stm32_SMBUS_stack.h"
 #include "stm32_PMBUS_stack.h"
 
+#ifdef PMBUS_ENABLE
 /** @addtogroup STM32_SMBUS_STACK
   * @{
   */
@@ -196,7 +197,7 @@ void HAL_SMBUS_MasterTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
         the amount of data to be read is yet to be sent by the slave - reading the byte count now:
       */
       pStackContext->StateMachine |= SMBUS_SMS_RECEIVE | SMBUS_SMS_PROCESSING;
-      HAL_SMBUS_Master_Sequential_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[1]), 1, SMBUS_NEXT_FRAME );
+      HAL_SMBUS_Master_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[1]), 1, SMBUS_NEXT_FRAME );
     }
     else if ((pStackContext->CurrentCommand->cmnd_master_Rx_size > 0 ) && (( pStackContext->OpMode & WRITE ) == 0 ))
     {
@@ -209,7 +210,7 @@ void HAL_SMBUS_MasterTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
       {
         size += 1;
       }
-      HAL_SMBUS_Master_Sequential_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[1]), size, SMBUS_LAST_FRAME | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
+      HAL_SMBUS_Master_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[1]), size, SMBUS_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
     }
   }
   else
@@ -251,7 +252,7 @@ void HAL_SMBUS_MasterRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
     /* Fail-safe stopping the Zone Read on empty answer */
     if ( pStackContext->Buffer[0] != 0xFF )
     {
-      pStackContext->Device->PreviousState = HAL_SMBUS_STATE_BUSY_TX;
+      pStackContext->Device->PreviousState = HAL_SMBUS_STATE_MASTER_BUSY_TX;
       STACK_PMBUS_MasterZoneReadStatusCont(pStackContext);
     }
     else
@@ -312,7 +313,7 @@ void HAL_SMBUS_MasterRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
         {
           size = pStackContext->CurrentCommand->cmnd_master_Rx_size;
         }
-        HAL_SMBUS_Master_Sequential_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[2]), size, SMBUS_LAST_FRAME  | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
+        HAL_SMBUS_Master_Receive_IT( hsmbus, pStackContext->SlaveAddress, &(pStackContext->Buffer[2]), size, SMBUS_LAST_FRAME_NO_PEC  | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE ));
       }
     }
     else
@@ -342,9 +343,9 @@ void STACK_SMBUS_SendAlert( SMBUS_StackHandleTypeDef* pStackContext )
   /*
     check mode consistency - device only sends
    */
-  if ( ( pStackContext->Device->Instance->CR1 & SMBUS_PERIPHERAL_MODE_HOST ) == 0)
+  if ( ( pStackContext->Device->Instance->CR1 & SMBUS_PERIPHERAL_MODE_SMBUS_HOST ) == 0)
   {
-    pStackContext->Device->Instance->CR1 |= I2C_CR1_ALERT;
+    pStackContext->Device->Instance->CR1 |= I2C_CR1_ALERTEN;
   }
 }
 
@@ -939,7 +940,7 @@ HAL_StatusTypeDef STACK_SMBUS_HostCommand(SMBUS_StackHandleTypeDef *pStackContex
       quick command case
       */
       size = 0;
-      xFerOptions = SMBUS_FIRST_AND_LAST_FRAME;
+      xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC;
 
       /* set buffer to NULL to remove autoend and manage STOP by SW */
       com_buffer = NULL;
@@ -1022,7 +1023,7 @@ HAL_StatusTypeDef STACK_SMBUS_HostCommand(SMBUS_StackHandleTypeDef *pStackContex
             /*
               Size of transmission may include the PEC byte
               */
-            xFerOptions = SMBUS_FIRST_AND_LAST_FRAME | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
+            xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
             if (pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE )
             {
               size += 1; /* PEC_SIZE */
@@ -1044,7 +1045,7 @@ HAL_StatusTypeDef STACK_SMBUS_HostCommand(SMBUS_StackHandleTypeDef *pStackContex
       /*
         Sending the data and logging the result
       */
-      result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, address, com_buffer, size, xFerOptions );
+      result = HAL_SMBUS_Master_Transmit_IT( pStackContext->Device, address, com_buffer, size, xFerOptions );
       if (result != HAL_OK )
       {
         pStackContext->StateMachine |= SMBUS_SMS_ERROR;
@@ -1063,7 +1064,7 @@ HAL_StatusTypeDef STACK_SMBUS_HostCommand(SMBUS_StackHandleTypeDef *pStackContex
 HAL_StatusTypeDef STACK_SMBUS_NotifyHost(SMBUS_StackHandleTypeDef *pStackContext)
 {
   HAL_StatusTypeDef     result = STACK_BUSY;
-  uint32_t              xFerOptions = SMBUS_FIRST_AND_LAST_FRAME;
+  uint32_t              xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC;
 
   /*
      First check status of the SMBUS - no transaction ongoing
@@ -1101,7 +1102,7 @@ HAL_StatusTypeDef STACK_SMBUS_NotifyHost(SMBUS_StackHandleTypeDef *pStackContext
     /*
       Sending the data and logging the result
     */
-    result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, SMBUS_ADDR_HOST, pStackContext->Buffer, 3, xFerOptions );
+    result = HAL_SMBUS_Master_Transmit_IT( pStackContext->Device, SMBUS_ADDR_HOST, pStackContext->Buffer, 3, xFerOptions );
     if (result != HAL_OK )
     {
       pStackContext->StateMachine |= SMBUS_SMS_ERROR;
@@ -1141,7 +1142,7 @@ HAL_StatusTypeDef STACK_SMBUS_HostRead(SMBUS_StackHandleTypeDef *pStackContext, 
     if ( pData == NULL )
     {
       size = 0;
-      xFerOptions = SMBUS_FIRST_AND_LAST_FRAME;
+      xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC;
     }
     else
     {
@@ -1150,13 +1151,13 @@ HAL_StatusTypeDef STACK_SMBUS_HostRead(SMBUS_StackHandleTypeDef *pStackContext, 
       {
         size += PEC_SIZE;
       }
-      xFerOptions = SMBUS_FIRST_AND_LAST_FRAME | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
+      xFerOptions = SMBUS_FIRST_AND_LAST_FRAME_NO_PEC | ( pStackContext->StateMachine & SMBUS_SMS_PEC_ACTIVE );
     }
 
     /*
       Ordering the HAL to do single frame read operation, checking the result
     */
-    result = HAL_SMBUS_Master_Sequential_Receive_IT( pStackContext->Device, address, pData, size, xFerOptions );
+    result = HAL_SMBUS_Master_Receive_IT( pStackContext->Device, address, pData, size, xFerOptions );
     if (result != HAL_OK )
     {
       pStackContext->StateMachine |= SMBUS_SMS_ERROR;
@@ -1203,7 +1204,7 @@ __weak HAL_StatusTypeDef STACK_SMBUS_ExtendCommand( SMBUS_StackHandleTypeDef* pS
    */
   return STACK_OK;
 }
-
+#endif //PMBUS_ENABLE
 /**
   * @}
   */

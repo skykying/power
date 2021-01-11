@@ -12,3 +12,5 @@
 *.Bak
 *.sct
 *.iex
+*.build_log.htm
+*.htm

@@ -83,6 +83,34 @@ conversion time */
 /* Exported functions ------------------------------------------------------- */
 /* Exported functions --------------------------------------------------------- */
 
+
+/* Definition for SMBUSx clock resources */
+#define SMBUSx_RCC_PERIPHCLK              RCC_PERIPHCLK_I2C1
+#define SMBUSx_CLKSOURCE_SYSCLK           RCC_I2C1CLKSOURCE_SYSCLK
+#define SMBUSx_CLK_ENABLE()               __HAL_RCC_I2C1_CLK_ENABLE()
+#define SMBUSx_SDA_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOA_CLK_ENABLE()
+#define SMBUSx_SCL_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOF_CLK_ENABLE() 
+
+#define SMBUSx_FORCE_RESET()              __HAL_RCC_I2C1_FORCE_RESET()
+#define SMBUSx_RELEASE_RESET()            __HAL_RCC_I2C1_RELEASE_RESET()
+
+/* Definition for SMBUSx Pins */
+#define SMBUSx_SCL_PIN                    GPIO_PIN_6
+#define SMBUSx_SCL_GPIO_PORT              GPIOF
+#define SMBUSx_SDA_PIN                    GPIO_PIN_10
+#define SMBUSx_SDA_GPIO_PORT              GPIOA
+#define SMBUSx_ALERT_PIN                  GPIO_PIN_8
+#define SMBUSx_ALERT_GPIO_PORT            GPIOA
+#define SMBUSx_SCL_SDA_ALERT_AF           GPIO_AF4_I2C1
+
+/* Definition for SMBUSx's NVIC */
+#define SMBUSx_EV_IRQn                    I2C1_EV_IRQn
+#define SMBUSx_ER_IRQn                    I2C1_ER_IRQn
+#define SMBUSx_EV_IRQHandler              I2C1_EV_IRQHandler
+#define SMBUSx_ER_IRQHandler              I2C1_ER_IRQHandler
+
+
+
 extern DemoModeTypeDef DemoState;
 extern HRTIM_HandleTypeDef hhrtim;
 

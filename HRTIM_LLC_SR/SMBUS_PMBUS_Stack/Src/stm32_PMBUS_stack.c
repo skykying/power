@@ -47,7 +47,7 @@
 /** @defgroup STM32_PMBUS_STACK_Constants
  * @{
  */
-
+#ifdef SMBUS_ENABLE
 /* ----------- definition of PMBUS commands ---------------- */
 st_command_t PMBUS_COMMANDS_TAB[] = {
 		{ PMBC_PAGE, READ_OR_WRITE, 2, 1 }, /* code 00 */
@@ -336,7 +336,7 @@ HAL_StatusTypeDef STACK_PMBUS_HostCommandGroup(
 		 finishing transmission
 		 */
 		if (last != 0) {
-			xFerOptions |= SMBUS_LAST_FRAME;
+			xFerOptions |= SMBUS_LAST_FRAME_NO_PEC;
 		}
 
 		/*
@@ -508,7 +508,7 @@ HAL_StatusTypeDef STACK_PMBUS_MasterZoneWrite(SMBUS_StackHandleTypeDef *pStackCo
 		/*
 		 finishing transmission
 		 */
-		xFerOptions |= SMBUS_LAST_FRAME;
+		xFerOptions |= SMBUS_LAST_FRAME_NO_PEC;
 
 		/*
 		 Initiating a transmission
@@ -519,7 +519,7 @@ HAL_StatusTypeDef STACK_PMBUS_MasterZoneWrite(SMBUS_StackHandleTypeDef *pStackCo
 		/*
 		 Sending the data and logging the result
 		 */
-		result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, SMBUS_ADDR_ZONE_WRITE, pStackContext->Buffer, size, xFerOptions );
+		result = HAL_SMBUS_Master_Transmit_IT( pStackContext->Device, SMBUS_ADDR_ZONE_WRITE, pStackContext->Buffer, size, xFerOptions );
 		if (result != HAL_OK )
 		{
 			pStackContext->StateMachine |= SMBUS_SMS_ERROR;
@@ -595,7 +595,7 @@ HAL_StatusTypeDef STACK_PMBUS_MasterReadZoneStatus(SMBUS_StackHandleTypeDef *pSt
 		/*
 		 Sending the data and logging the result
 		 */
-		result = HAL_SMBUS_Master_Sequential_Transmit_IT( pStackContext->Device, SMBUS_ADDR_ZONE_READ, pStackContext->Buffer, 2, SMBUS_FIRST_FRAME );
+		result = HAL_SMBUS_Master_Transmit_IT( pStackContext->Device, SMBUS_ADDR_ZONE_READ, pStackContext->Buffer, 2, SMBUS_FIRST_FRAME );
 		if (result != HAL_OK )
 		{
 			pStackContext->StateMachine |= SMBUS_SMS_ERROR;
@@ -614,7 +614,7 @@ HAL_StatusTypeDef STACK_PMBUS_MasterZoneReadStatusCont(SMBUS_StackHandleTypeDef 
 {
 	HAL_StatusTypeDef result = STACK_ERROR;
 
-	result = HAL_SMBUS_Master_Sequential_Receive_IT( pStackContext->Device, SMBUS_ADDR_ZONE_READ, pStackContext->Buffer, 2, SMBUS_NO_OPTION_FRAME);
+	result = HAL_SMBUS_Master_Receive_IT( pStackContext->Device, SMBUS_ADDR_ZONE_READ, pStackContext->Buffer, 2, SMBUS_OTHER_FRAME_NO_PEC);
 	if (result != HAL_OK )
 	{
 		pStackContext->StateMachine |= SMBUS_SMS_ERROR;
@@ -654,7 +654,7 @@ __weak HAL_StatusTypeDef STACK_PMBUS_ZoneReadCallback( SMBUS_StackHandleTypeDef*
 	return STACK_OK;
 }
 #endif  /* PMBUS13 */
-
+#endif //SMBUS_ENABLE
 /**
  * @}
  */
